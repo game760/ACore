@@ -1,117 +1,104 @@
-name: Playerbots-Win_X64
+name: Playerbots-Linux_x64
+
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 18 * * *"
     - cron: "0 6 * * *"
-    
+
 jobs:
   build:
-   runs-on: windows-2025
-   permissions:
-     contents: write
-   env:
-      AC_REPO: 'mod-playerbots/azerothcore-wotlk'
-      AC_BRANCH: 'Playerbot'
-      AC_MODULES: 'https://github.com/game760/mod-playerbots.git;test|https://github.com/azerothcore/mod-learn-spells.git;master|https://github.com/azerothcore/mod-autobalance.git;master|https://github.com/azerothcore/mod-eluna.git;master'
-      BUILD_DIR: ${{ github.workspace }}\build
-      BOOST_INSTALL_DIR: D:\boost\boost_1_89_0
-      BOOST_DOWNLOAD_URL: https://archives.boost.io/release/1.89.0/binaries/boost_1_89_0-msvc-14.3-64.exe
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
       
-   steps:
-      - name: 克隆源码
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.AC_REPO }}
-          ref: ${{ env.AC_BRANCH }}
-          submodules: 'recursive'
-
-      - name: 克隆/更新模块
-        if: env.AC_MODULES != ''
-        run: |
-          $moduleList = $env:AC_MODULES -split '\|'
-          foreach ($module in $moduleList) {
-            $parts = $module -split ';'
-            $repoUrl = $parts[0]
-            $branch = if ($parts.Count -ge 2) { $parts[1] } else { 'master' } # 分支默认值
-            
-            $moduleName = ($repoUrl -split '/' | Select-Object -Last 1) -replace '\.git$', ''
-            $modulePath = "${{ github.workspace }}\modules\$moduleName"
-            
-            if (Test-Path $modulePath) {
-              Write-Host "更新模块: $moduleName (分支: $branch)"
-              cd $modulePath
-              git checkout $branch
-              git pull origin $branch
-            } else {
-              Write-Host "克隆模块: $moduleName (分支: $branch)"
-              git clone -b $branch $repoUrl $modulePath
-            }
-          }
-        shell: pwsh
+    env:
+      BUILD_DIR: ./build
+      INSTALL_DIR: ./install
+      MODULES_DIR: ./modules
+      ACORE_REPO: "https://github.com/mod-playerbots/azerothcore-wotlk.git"
+      ACORE_BRANCH: "Playerbot"
+      BUILD_TYPE: "Release"
+      MODULES_INPUT: |
+        https://github.com/mod-playerbots/mod-playerbots.git master
         
-      - name: 获取时间
+    steps:
+      - name: 安装依赖
+        run: |
+          sudo apt update -y
+          sudo apt install -y git cmake make clang libmysqlclient-dev libssl-dev libbz2-dev libreadline-dev libncurses-dev libboost-all-dev libcurl4-openssl-dev
+          sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
+
+      - name: 生成时间
         id: ts
         run: |
-           echo "utctime=$((Get-Date).ToUniversalTime().AddHours(8).ToString('yyyy-MM-dd_HH:mm'))" >> $env:GITHUB_OUTPUT
-        shell: pwsh
-        
-      - name: 安装Boost
-        run: |
-          New-Item -Path "D:\temp" -ItemType Directory -Force | Out-Null
-          $installerPath = "D:\temp\boost_installer.exe"
-          Invoke-WebRequest -Uri "${{ env.BOOST_DOWNLOAD_URL }}" -OutFile $installerPath -UseBasicParsing
-          Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT /DIR=`"${{ env.BOOST_INSTALL_DIR }}`"" -Wait -NoNewWindow
-          echo "BOOST_ROOT=${{ env.BOOST_INSTALL_DIR }}".Replace('\', '/') | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: pwsh
+          echo "utcs=$(TZ=Asia/Shanghai date +%Y-%m-%d_%H:%M)" >> $GITHUB_OUTPUT
 
-      - name: 配置CMake
+      - name: 克隆仓库
         run: |
-          if (-not (Test-Path "${{ env.BUILD_DIR }}")) {
-            New-Item -Path "${{ env.BUILD_DIR }}" -ItemType Directory -Force | Out-Null
-          }
-          cd "${{ env.BUILD_DIR }}"
-          cmake "${{ github.workspace }}" `
-            -G "Visual Studio 17 2022" `
-            -A x64 `
-            -DBOOST_ROOT="${{ env.BOOST_ROOT }}" `
-            -DTOOLS=1 `
-            -DSCRIPTS=static
-        shell: pwsh
-        
-      - name: 配置MSBuild
-        uses: microsoft/setup-msbuild@v2
+          git clone --depth 1 --branch "${{ env.ACORE_BRANCH }}" "${{ env.ACORE_REPO }}" .
+          git submodule update --init --recursive --depth 1
 
-      - name: 编译项目
+      - name: 拉取模块
+        id: modules
         run: |
-          cd "${{ env.BUILD_DIR }}"
-          msbuild AzerothCore.sln /p:Configuration=Release /p:Platform=x64 /m /p:BuildInParallel=true
-        shell: pwsh
-        
-      - name: 打包文件
+          mkdir -p "${{ env.MODULES_DIR }}"
+          success=()
+          failure=()
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            repo=$(echo "$line" | awk '{print $1}')
+            branch=$(echo "$line" | awk '{print $2}')
+            name=$(basename "$repo" .git)
+            if git clone --depth 1 --branch "$branch" "$repo" "${{ env.MODULES_DIR }}/$name"; then
+              success+=("$name（$branch）")
+            else
+              failure+=("$name（$branch）")
+              echo "⚠️ 模块 $name 克隆失败，将继续构建"
+            fi
+          done <<< "${{ env.MODULES_INPUT }}"
+          echo "success=$(IFS=';'; echo "${success[*]}")" >> $GITHUB_OUTPUT
+          echo "failure=$(IFS=';'; echo "${failure[*]}")" >> $GITHUB_OUTPUT
+
+      - name: 配置与编译
         run: |
-          & "C:\Program Files\7-Zip\7z.exe" a -tzip Playerbots_Win_x64.zip "${{ env.BUILD_DIR }}\bin\Release\*" -mx=5
-        shell: pwsh
-        
-      - name: 上传文件
+          mkdir -p "${{ env.BUILD_DIR }}" && cd "${{ env.BUILD_DIR }}"
+          cmake .. \
+            -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
+            -DCMAKE_INSTALL_PREFIX="${{ env.INSTALL_DIR }}" \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DWITH_WARNINGS=0 \
+            -DTOOLS_BUILD=all \
+            -DSCRIPTS=static \
+            -DMODULES=static
+          make -j$(nproc) && make install
+
+      - name: 打包构建
+        id: package
+        run: |
+          tar -czvf "Playerbots_linux_x64.tar.gz" -C /home/runner/work/acore/acore/build/install .
+
+      - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
-          name: Playerbots_Win_x64
-          path: Playerbots_Win_x64.zip
-          if-no-files-found: warn
+          name: Playerbots_Linux-x64
+          path: Playerbots_linux_x64.tar.gz
+          if-no-files-found: error
           retention-days: 3
-          
-      - name: 上传Release
+
+      - name: 发布Release
         uses: ncipollo/release-action@v1
         with:
-           tag: "Playerbots_Win_X64"
-           name: "Playerbots_Win_X64"
-           body: |
-                 ### ${{ steps.ts.outputs.utctime }}
-           artifacts: Playerbots_Win_x64.zip
-           allowUpdates: true
-           replaceArtifacts: true
-           draft: false
-           prerelease: false
+          tag: "dev"
+          name: "Playerbots_Linux_x64_dev"
+          body: |
+                ### ${{ steps.ts.outputs.utcs }}
+                - 此发布仅用于测试
+          artifacts: Playerbots_linux_x64.tar.gz
+          allowUpdates: true
+          replaceArtifacts: true
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.BUILD_AZEROTHCORE }}
