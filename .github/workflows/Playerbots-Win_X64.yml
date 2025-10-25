@@ -33,7 +33,7 @@ jobs:
           foreach ($module in $moduleList) {
             $parts = $module -split ';'
             $repoUrl = $parts[0]
-            $branch = if ($parts.Count -ge 2) { $parts[1] } else { 'master' } # 分支默认值
+            $branch = if ($parts.Count -ge 2) { $parts[1] } else { 'master' }
             
             $moduleName = ($repoUrl -split '/' | Select-Object -Last 1) -replace '\.git$', ''
             $modulePath = "${{ github.workspace }}\modules\$moduleName"
