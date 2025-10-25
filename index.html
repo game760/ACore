@@ -109,11 +109,22 @@
 
     /* 仓库统计样式 */
     .repo-stats {
-      @apply py-12 bg-gradient-to-r from-blue-50 to-indigo-50;
+      @apply py-16 bg-gradient-to-r from-blue-50 to-indigo-50;
     }
     
     .stat-card {
-      @apply bg-white rounded-xl shadow-md p-6 text-center hover-lift;
+      @apply bg-white rounded-2xl shadow-md p-8 text-center hover-lift border border-gray-100;
+    }
+
+    /* 统计数据加载动画 */
+    .stat-number {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .stat-number.loaded {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     /* FAQ 区域样式 */
@@ -280,81 +291,92 @@
     </div>
   </section>
 
-  <!-- 仓库统计区域 -->
-  <section class="repo-stats">
+  <!-- 仓库统计区域（优化版） -->
+  <section class="repo-stats py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold mb-4">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">
           <span class="lang-en">Repository Statistics</span>
           <span class="lang-zh">仓库统计信息</span>
         </h2>
-        <p class="text-gray-600 max-w-2xl mx-auto">
+        <p class="text-gray-600 max-w-2xl mx-auto text-lg">
           <span class="lang-en">Current metrics for the AzerothCore repository on GitHub</span>
           <span class="lang-zh">GitHub上AzerothCore仓库的当前数据指标</span>
         </p>
       </div>
       
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-        <!-- Stars 统计 -->
-        <div class="stat-card">
-          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 text-yellow-500 mb-4 mx-auto">
-            <i class="fa fa-star text-2xl"></i>
+      <!-- 统计卡片容器：使用grid确保对齐，增加间距提升呼吸感 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
+        <!-- Stars 统计卡片（优化样式+对齐） -->
+        <div class="stat-card flex flex-col items-center justify-between">
+          <div class="text-center mb-6">
+            <div class="flex items-center justify-center h-20 w-20 rounded-full bg-yellow-100 text-yellow-500 mb-4 mx-auto">
+              <i class="fa fa-star text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-700">
+              <span class="lang-en">Stars</span>
+              <span class="lang-zh">星标数</span>
+            </h3>
           </div>
-          <h3 class="text-lg font-semibold mb-2">
-            <span class="lang-en">Stars</span>
-            <span class="lang-zh">星标数</span>
-          </h3>
-          <p class="text-3xl font-bold text-gray-800" id="stars-count">
-            <i class="fa fa-spinner fa-spin"></i>
+          <p class="text-4xl font-bold text-gray-800 stat-number" id="stars-count">
+            <i class="fa fa-spinner fa-spin text-gray-400"></i>
           </p>
         </div>
         
-        <!-- Forks 统计 -->
-        <div class="stat-card">
-          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-green-100 text-green-500 mb-4 mx-auto">
-            <i class="fa fa-code-fork text-2xl"></i>
+        <!-- Forks 统计卡片 -->
+        <div class="stat-card flex flex-col items-center justify-between">
+          <div class="text-center mb-6">
+            <div class="flex items-center justify-center h-20 w-20 rounded-full bg-green-100 text-green-500 mb-4 mx-auto">
+              <i class="fa fa-code-fork text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-700">
+              <span class="lang-en">Forks</span>
+              <span class="lang-zh">分支数</span>
+            </h3>
           </div>
-          <h3 class="text-lg font-semibold mb-2">
-            <span class="lang-en">Forks</span>
-            <span class="lang-zh">分支数</span>
-          </h3>
-          <p class="text-3xl font-bold text-gray-800" id="forks-count">
-            <i class="fa fa-spinner fa-spin"></i>
+          <p class="text-4xl font-bold text-gray-800 stat-number" id="forks-count">
+            <i class="fa fa-spinner fa-spin text-gray-400"></i>
           </p>
         </div>
         
-        <!-- Issues 统计 -->
-        <div class="stat-card">
-          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-red-100 text-red-500 mb-4 mx-auto">
-            <i class="fa fa-exclamation-triangle text-2xl"></i>
+        <!-- Issues 统计卡片 -->
+        <div class="stat-card flex flex-col items-center justify-between">
+          <div class="text-center mb-6">
+            <div class="flex items-center justify-center h-20 w-20 rounded-full bg-red-100 text-red-500 mb-4 mx-auto">
+              <i class="fa fa-exclamation-triangle text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-700">
+              <span class="lang-en">Open Issues</span>
+              <span class="lang-zh">开放问题</span>
+            </h3>
           </div>
-          <h3 class="text-lg font-semibold mb-2">
-            <span class="lang-en">Open Issues</span>
-            <span class="lang-zh">开放问题</span>
-          </h3>
-          <p class="text-3xl font-bold text-gray-800" id="issues-count">
-            <i class="fa fa-spinner fa-spin"></i>
+          <p class="text-4xl font-bold text-gray-800 stat-number" id="issues-count">
+            <i class="fa fa-spinner fa-spin text-gray-400"></i>
           </p>
         </div>
         
-        <!-- Contributors 统计 -->
-        <div class="stat-card">
-          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-purple-100 text-purple-500 mb-4 mx-auto">
-            <i class="fa fa-users text-2xl"></i>
+        <!-- Contributors 统计卡片 -->
+        <div class="stat-card flex flex-col items-center justify-between">
+          <div class="text-center mb-6">
+            <div class="flex items-center justify-center h-20 w-20 rounded-full bg-purple-100 text-purple-500 mb-4 mx-auto">
+              <i class="fa fa-users text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-700">
+              <span class="lang-en">Contributors</span>
+              <span class="lang-zh">贡献者</span>
+            </h3>
           </div>
-          <h3 class="text-lg font-semibold mb-2">
-            <span class="lang-en">Contributors</span>
-            <span class="lang-zh">贡献者</span>
-          </h3>
-          <p class="text-3xl font-bold text-gray-800" id="contributors-count">
-            <i class="fa fa-spinner fa-spin"></i>
+          <p class="text-4xl font-bold text-gray-800 stat-number" id="contributors-count">
+            <i class="fa fa-spinner fa-spin text-gray-400"></i>
           </p>
         </div>
       </div>
       
-      <div class="text-center mt-8">
-        <a href="https://github.com/azerothcore/azerothcore-wotlk" target="_blank" class="inline-flex items-center text-primary hover:text-secondary transition-colors font-medium">
-          <i class="fa fa-github mr-2"></i>
+      <!-- GitHub跳转按钮（优化位置和样式） -->
+      <div class="text-center mt-12">
+        <a href="https://github.com/azerothcore/azerothcore-wotlk" target="_blank" 
+           class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-secondary transition-all shadow-md hover:shadow-lg">
+          <i class="fa fa-github mr-2 text-xl"></i>
           <span class="lang-en">View on GitHub</span>
           <span class="lang-zh">在GitHub上查看</span>
         </a>
@@ -912,7 +934,7 @@
   </footer>
 
   <script>
-    // 存储下载计数数据（移除了运行库相关计数）
+    // 存储下载计数数据
     const downloadCounts = {
       windows: 1233,
       linux: 857,
@@ -985,10 +1007,18 @@
         
         const data = await response.json();
         
-        // 更新Stars和Forks计数
-        document.getElementById('stars-count').textContent = data.stargazers_count.toLocaleString();
-        document.getElementById('forks-count').textContent = data.forks_count.toLocaleString();
-        document.getElementById('issues-count').textContent = data.open_issues_count.toLocaleString();
+        // 更新Stars和Forks计数，并添加加载动画
+        const starsElement = document.getElementById('stars-count');
+        starsElement.textContent = data.stargazers_count.toLocaleString();
+        starsElement.classList.add('loaded');
+        
+        const forksElement = document.getElementById('forks-count');
+        forksElement.textContent = data.forks_count.toLocaleString();
+        forksElement.classList.add('loaded');
+        
+        const issuesElement = document.getElementById('issues-count');
+        issuesElement.textContent = data.open_issues_count.toLocaleString();
+        issuesElement.classList.add('loaded');
         
         // 获取贡献者数量
         const contributorsUrl = `https://api.github.com/repos/${repo}/contributors?per_page=1`;
@@ -996,24 +1026,30 @@
         
         // 从响应头获取贡献者总数
         const linkHeader = contributorsResponse.headers.get('Link');
+        const contributorsElement = document.getElementById('contributors-count');
+        
         if (linkHeader) {
           const lastPageMatch = linkHeader.match(/page=(\d+)>; rel="last"/);
           if (lastPageMatch) {
-            document.getElementById('contributors-count').textContent = lastPageMatch[1];
+            contributorsElement.textContent = lastPageMatch[1];
           } else {
-            document.getElementById('contributors-count').textContent = '1+';
+            contributorsElement.textContent = '1+';
           }
         } else {
           // 如果没有Link头，说明只有一页贡献者
           const contributors = await contributorsResponse.json();
-          document.getElementById('contributors-count').textContent = contributors.length.toString();
+          contributorsElement.textContent = contributors.length.toString();
         }
+        
+        contributorsElement.classList.add('loaded');
       } catch (error) {
         console.error('Error fetching GitHub repo stats:', error);
         // 显示错误状态
         const statsElements = ['stars-count', 'forks-count', 'issues-count', 'contributors-count'];
         statsElements.forEach(id => {
-          document.getElementById(id).innerHTML = '<i class="fa fa-exclamation-circle text-red-500"></i>';
+          const element = document.getElementById(id);
+          element.innerHTML = '<i class="fa fa-exclamation-circle text-red-500"></i>';
+          element.classList.add('loaded');
         });
       }
     }
