@@ -12,17 +12,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 
   <style>
-    .wotlk-banner-bg {
-      background-image: url('./banner.jpg'); 
-      background-size: 100% auto;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-color: rgba(0, 0, 0, 0.6);
-      background-blend-mode: overlay;
-      main-height: auto;
-      width: 100%;
-    }
-    
     /* 卡片hover上浮效果 */
     .hover-lift {
       transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -45,10 +34,6 @@
     @keyframes scaleIn {
       from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
-    }
-    /* 文字阴影（增强Banner文字可读性） */
-    .text-shadow {
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
     }
 
     @layer utilities {
@@ -86,9 +71,15 @@
       @apply md:hidden hidden;
     }
 
-    /* Banner区域样式（适配背景图） */
+    /* Banner区域样式（渐变纯色背景） */
     .wotlk-banner-bg {
-      @apply text-white py-20 md:py-28; /* 增加上下内边距，优化图片显示区域 */
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+      padding: 4rem 0;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
 
     /* 下载区域样式 */
@@ -264,20 +255,23 @@
     </div>
   </header>
 
-  <!-- Banner区域（替换为WotLK背景图） -->
-  <section class="wotlk-banner-bg text-white py-20 md:py-28">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+  <!-- Banner区域（渐变纯色背景） -->
+  <section class="wotlk-banner-bg text-white py-16 md:py-24">
+    <!-- 装饰元素 -->
+    <div class="absolute top-20 left-10 md:left-20 w-32 h-32 md:w-48 md:h-48 rounded-full bg-white/10 blur-2xl"></div>
+    <div class="absolute bottom-20 right-10 md:right-20 w-24 h-24 md:w-36 md:h-36 rounded-full bg-white/10 blur-2xl"></div>
+    
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="max-w-3xl mx-auto text-center">
-        <!-- 增强文字阴影，确保在背景图上清晰可见 -->
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-shadow">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
           <span class="lang-en">AzerothCore-Wotlk</span>
           <span class="lang-zh">艾泽拉斯核心-巫妖王之怒</span>
         </h1>
-        <p class="text-xl md:text-2xl text-white/90 mb-8 text-shadow">
+        <p class="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
           <span class="lang-en">Open-source WotLK Server with Playerbots. Download precompiled builds.</span>
           <span class="lang-zh">带玩家机器人的开源巫妖王之怒服务器。下载预编译版本，即刻开始体验。</span>
         </p>
-        <a href="#downloads" class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-secondary transition-colors">
+        <a href="#downloads" class="inline-flex items-center px-8 py-3.5 bg-white text-primary rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl">
           <span class="lang-en">Get Started</span>
           <span class="lang-zh">立即开始</span>
           <i class="fa fa-arrow-down ml-2"></i>
@@ -286,7 +280,7 @@
     </div>
   </section>
 
-  <!-- 新增：仓库统计区域 -->
+  <!-- 仓库统计区域 -->
   <section class="repo-stats">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
@@ -677,6 +671,32 @@
               <span class="lang-zh">下载</span>
             </a>
           </div>
+
+          <!-- All Maps -->
+          <div class="border border-gray-200 rounded-xl p-6 hover-lift">
+            <div class="flex items-center justify-center h-14 w-14 rounded-full bg-blue-50 text-primary mb-5 mx-auto">
+              <i class="fa fa-compress text-2xl"></i>
+            </div>
+            <h4 class="text-lg font-semibold text-center mb-3">
+              <span class="lang-en">All Maps</span>
+              <span class="lang-zh">全部地图文件</span>
+            </h4>
+            <p class="text-gray-600 text-center text-sm mb-3">
+              <span class="lang-en">Compressed package with all map components</span>
+              <span class="lang-zh">包含所有地图组件的压缩包</span>
+            </p>
+            <p class="text-gray-500 text-center text-xs mb-3">
+              <i class="fa fa-download text-green-500 mr-1"></i> 
+              <span class="download-count" data-type="all-maps">926</span>
+            </p>
+            <a href="https://github.com/game760/mapdata/releases/download/MapData/all_maps.zip" target="_blank"
+               class="download-btn block w-full py-2 px-3 bg-primary text-white rounded-lg text-center text-sm font-medium hover:bg-secondary transition-colors"
+               data-type="all-maps">
+              <i class="fa fa-download mr-1"></i> 
+              <span class="lang-en">Download</span>
+              <span class="lang-zh">下载</span>
+            </a>
+          </div>
         </div>
         
         <!-- Installation Notes -->
@@ -887,7 +907,7 @@
   </footer>
 
   <script>
-    // 存储下载计数数据
+    // 存储下载计数数据（移除了运行库相关计数）
     const downloadCounts = {
       windows: 1233,
       linux: 857,
@@ -897,7 +917,8 @@
       vmap: 643,
       mmaps: 598,
       cameras: 421,
-      "maps-base": 812
+      "maps-base": 812,
+      "all-maps": 926
     };
 
     // 下载提示函数
